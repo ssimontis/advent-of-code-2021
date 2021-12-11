@@ -81,20 +81,28 @@ const hasWon = (board: Board): boolean => {
 const gameParameters = await readInput();
 const {numbers, boards} = gameParameters;
 
-for (const number of numbers) {
-  for (const board of boards) {
-    const match = board.spaces.findIndex(s => s.value === number);
-    if (match !== -1) {
-      board.spaces[match].picked = true;
-    }
-  }
-  
+const playRound = (picked: number, activeBoards: Board[]): Board[] => {
+  const boards = [...activeBoards];
 
-  const winner = boards.find(hasWon);
-  if (winner) {
-    const unmarkedScore = winner.spaces.filter(x => !x.picked).reduce((prev, cur) => prev += cur.value, 0);
-    const answer = unmarkedScore * number;
-    console.log(`Answer is ${answer}`);
-    break;
+  for (const board of boards) {
+      const match = board.spaces.findIndex(s => s.value === picked);
+
+      if (match !== -1) {
+        board.spaces[match].picked = true;
+      }
   }
+
+  const winners = boards.filter(hasWon);
+  if (winners.length === 1 && boards.length === 1) {
+    const unmarkedScore = winners[0].spaces.filter(x => !x.picked).reduce((prev, cur) => prev += cur.value, 0);
+    const answer = unmarkedScore * picked;
+    console.log(`Answer is ${answer}`);
+  }
+
+  return boards.filter(x => !hasWon(x));
+}
+  
+let currentBoards = boards;
+for (const number of numbers) {
+  currentBoards = playRound(number, currentBoards);
 }
