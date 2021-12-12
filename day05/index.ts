@@ -48,7 +48,7 @@ const swapCoordinates = (line: Line): Line =>
 
 const mapPlot: Point[] = [];
 
-const addLine = (line: Line) => {
+const addStraightLine = (line: Line) => {
   for (let x = line.startX; x <= line.endX; x += 1) {
     for (let y = line.startY; y <= line.endY; y += 1) {
       const existingCoordinateIndex = mapPlot.findIndex(point => point.x === x && point.y === y);
@@ -67,9 +67,53 @@ const addLine = (line: Line) => {
   }
 }
 
-const allLines = await readInput();
-allLines.filter(isHorizontalOrVerticalLine).map(swapCoordinates).forEach(addLine);
-console.log(mapPlot.length);
+const addDiagonalLine = (line: Line) => {
+  const slopeY = line.endY < line.startY ? -1 : 1;
+  const slopeX = line.endX < line.startX ? -1 : 1;
+  let y = line.startY;
 
-const answer = mapPlot.reduce((prev, cur) => prev += cur.count > 1 ? 1 : 0, 0);
+  if (line.startX < line.endX) {
+    for (let x = line.startX; x <= line.endX; x += 1 * slopeX) {
+      const existingCoordinateIndex = mapPlot.findIndex(point => point.x === x && point.y === y);
+        if (existingCoordinateIndex === -1) {
+          mapPlot.push({
+            x,
+            y,
+            count: 1
+          });
+  
+          y += 1 * slopeY;
+          continue;
+        }
+  
+        mapPlot[existingCoordinateIndex].count += 1;
+        y += 1 * slopeY;
+    }
+  } else {
+    for (let x = line.startX; x >= line.endX; x += 1 * slopeX) {
+      const existingCoordinateIndex = mapPlot.findIndex(point => point.x === x && point.y === y);
+        if (existingCoordinateIndex === -1) {
+          mapPlot.push({
+            x,
+            y,
+            count: 1
+          });
+
+          y += 1 * slopeY;
+          continue;
+        }
+
+        mapPlot[existingCoordinateIndex].count += 1;
+        
+        y += 1 * slopeY;
+    }
+  }
+}
+
+const allLines = await readInput();
+allLines.filter(isHorizontalOrVerticalLine).map(swapCoordinates).forEach(addStraightLine);
+allLines.filter(x => !isHorizontalOrVerticalLine(x)).forEach(addDiagonalLine);
+
+
+const answer = mapPlot.filter(x => x.count > 1).length;
 console.log(`Answer is ${answer}`);
