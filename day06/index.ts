@@ -7,26 +7,37 @@ const readInputs = async (): Promise<number[]> => {
 }
 
 const startingFish = await readInputs();
-const numDays = 80;
+const numDays = 256;
+const maxStartingLifespan = 6;
+const newLifespan = 8;
 
-const runDay = (currentFish: number[]): number[] => {
-  const zeroes = currentFish.filter(x => x === 0);
+const fishLives = new Map<number, number>();
 
-  const nonZeroes = currentFish.filter(x => x !== 0);
-  const countdownValues = nonZeroes.map(x => x - 1);
+for (let i = 0; i <= maxStartingLifespan; i += 1) {
+  const fishCount = startingFish.filter(x => x === i).length;
+  fishLives.set(i, fishCount);
+}
 
-  for (const zero in zeroes) {
-    countdownValues.push(8);
-    countdownValues.push(6);
+const runDay = () => {
+  const zeroes = fishLives.get(0) || 0;
+
+  for (let i = 1; i <= newLifespan; i += 1) {
+    const fishCount = fishLives.get(i) || 0;
+    fishLives.set(i - 1, fishCount);
   }
 
-  return countdownValues;
+  const existingFish = fishLives.get(maxStartingLifespan) || 0;
+  fishLives.set(maxStartingLifespan, existingFish + zeroes);
+  fishLives.set(8, zeroes);
 }
-
-let dailyFish: number[] = startingFish;
 
 for (let i = 0; i < numDays; i += 1) {
-  dailyFish = runDay(dailyFish);
+  runDay();
 }
 
-console.log(dailyFish.length);
+let count = 0;
+for (let i = 0; i <= 8; i += 1) {
+  count += fishLives.get(i) || 0;
+}
+
+console.log(count);
